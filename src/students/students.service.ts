@@ -29,6 +29,10 @@ export class StudentsService {
     }
     return student;
   }
+  //teacher to save
+  async save(student: Student): Promise<Student> {
+    return this.studentRepository.save(student);
+  }
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     const { classId, ...studentData } = createStudentDto;
