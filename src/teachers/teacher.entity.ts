@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn,JoinTable, ManyToMany } from 'typeorm';
 import { Class } from 'src/classes/class.entity';
 
 @Entity()
@@ -12,6 +12,10 @@ export class Teacher {
   @OneToOne(() => Class, (classEntity) => classEntity.teacher, { cascade: true })
   @JoinColumn()
   class: Class;
+
+  @ManyToMany(() => Class, (classEntity) => classEntity.teachers)
+  @JoinTable()
+  classes: Class[];
 
   @Column({ nullable: true })
   subject: string;

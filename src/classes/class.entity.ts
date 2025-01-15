@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, OneToOne, ManyToMany,JoinTable } from 'typeorm';
 import { Student } from '../students/student.entity';
 import { Teacher } from '../teachers/teacher.entity';
 
@@ -10,9 +10,13 @@ export class Class {
   @Column()
   name: string;
 
-  @OneToMany(() => Student, (student) => student.class)
-  students: Student[];
-
   @OneToOne(() => Teacher, (teacher) => teacher.class)
   teacher: Teacher;
+
+  @ManyToMany(() => Teacher, (teacher) => teacher.classes)
+  @JoinTable() 
+  teachers: Teacher[];
+
+  @OneToMany(() => Student, (student) => student.class)
+  students: Student[];
 }

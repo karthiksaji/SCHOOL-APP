@@ -60,6 +60,8 @@ export class StudentsService {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
+    
+
     if (classId) {
       const classEntity = await this.classRepository.findOne({ where: { id: classId } });
       if (!classEntity) {
@@ -72,7 +74,39 @@ export class StudentsService {
     return this.studentRepository.save(existingStudent);
   }
 
+  async updatestudentbyteacher(id: number, updateStudentDto: UpdateStudentDto): Promise<Student> {
+    const { classId, ...studentData } = updateStudentDto;
+
+    const existingStudent = await this.studentRepository.findOne({
+      where: { id },
+      relations: ['class'],
+    });
+    if (!existingStudent) {
+      throw new NotFoundException(`Student with ID ${id} not found`);
+    }
+    
+    if (classId) {
+      const classEntity = await this.classRepository.findOne({ where: { id: classId } });
+      if (!classEntity) {
+        throw new NotFoundException(`Class with ID ${classId} not found`);
+      }
+      existingStudent.class = classEntity;
+    }
+
+    Object.assign(existingStudent, studentData);
+    return this.studentRepository.save(existingStudent);
+  }
+
+
   async remove(id: number): Promise<void> {
+    const result = await this.studentRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Student with ID ${id} not found`);
+    }
+  }
+
+  
+  async removestudentbyteacher(id: number): Promise<void> {
     const result = await this.studentRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Student with ID ${id} not found`);

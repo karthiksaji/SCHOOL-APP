@@ -1,13 +1,16 @@
-import { Injectable,NotFoundException,ForbiddenException } from '@nestjs/common';
+import { Injectable,NotFoundException,ForbiddenException,HttpException,UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository,In } from 'typeorm';
 import { Teacher } from './teacher.entity';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { Student } from 'src/students/student.entity';
 import { Class } from 'src/classes/class.entity';
+import { Logger } from '@nestjs/common';
+
 
 @Injectable()
 export class TeachersService {
+  private readonly logger = new Logger(TeachersService.name);
   constructor(
     @InjectRepository(Teacher)
     private readonly teacherRepository: Repository<Teacher>,
@@ -33,68 +36,43 @@ export class TeachersService {
     return this.teacherRepository.save(teacher);
   }
 
-  //add student to class
-
-  async addStudentToClass(teacherId: number, classId: number, studentId: number) {
-    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId }, relations: ['class'] });
+   // Method to assign a teacher to multiple classes
+   async assignTeacherToClasses(
+    teacherId: number,
+    classIds: number[]
+  ) {
+    // Fetch the teacher
+    const teacher = await this.teacherRepository.findOne({
+      where: { id: teacherId },
+      relations: ['classes'], // Get the classes the teacher is already assigned to
+    });
 
     if (!teacher) {
-      throw new NotFoundException('Teacher not found');
+      throw new NotFoundException(`Teacher with ID ${teacherId} not found`);
     }
 
-    if (teacher.class.id !== classId) {
-      throw new ForbiddenException('Teacher is not authorized to manage this class');
+    // Fetch the classes by the provided class IDs
+    const classes = await this.classRepository.find({
+      where: {
+        id: In(classIds),  // Use In() to query by multiple IDs
+      },
+    });
+
+    if (!classes || classes.length === 0) {
+      throw new NotFoundException('Classes not found');
     }
 
-    const student = await this.studentRepository.findOne({ where: { id: studentId } });
-
-    if (!student) {
-      throw new NotFoundException('Student not found');
-    }
-
-    const classEntity = await this.classRepository.findOne({ where: { id: classId }, relations: ['students'] });
-
-    if (!classEntity) {
-      throw new NotFoundException('Class not found');
-    }
-
-    if (classEntity.students.find((s) => s.id === studentId)) {
-      throw new Error('Student is already in this class');
-    }
-
-    classEntity.students.push(student);
-    await this.classRepository.save(classEntity);
+    // Assign the classes to the teacher
+    teacher.classes = [...teacher.classes, ...classes];
+    
+    // Save the updated teacher
+    await this.teacherRepository.save(teacher);
 
     return {
-      message: 'Student added to class successfully',
-      data: { teacherId, classId, studentId },
+      message: 'Teacher successfully assigned to the classes',
+      teacher,
     };
   }
 
-  async removeStudentFromClass(teacherId: number, classId: number, studentId: number) {
-    const teacher = await this.teacherRepository.findOne({ where: { id: teacherId }, relations: ['class'] });
-
-    if (!teacher) {
-      throw new NotFoundException('Teacher not found');
-    }
-
-    if (teacher.class.id !== classId) {
-      throw new ForbiddenException('Teacher is not authorized to manage this class');
-    }
-
-    const classEntity = await this.classRepository.findOne({ where: { id: classId }, relations: ['students'] });
-
-    if (!classEntity) {
-      throw new NotFoundException('Class not found');
-    }
-
-    classEntity.students = classEntity.students.filter((s) => s.id !== studentId);
-    await this.classRepository.save(classEntity);
-
-    return {
-      message: 'Student removed from class successfully',
-      data: { teacherId, classId, studentId },
-    };
-  }
-
+  
 }

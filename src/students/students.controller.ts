@@ -43,8 +43,19 @@ export class StudentsController {
     return this.studentsService.update(+id, updateStudentDto);
   }
 
+  
+  @Put('/teachers/:id')
+  updatestudentbyteacher(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
+    return this.studentsService.update(+id, updateStudentDto);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
+    return this.studentsService.remove(+id);
+  }
+
+  @Delete('/teachers/:id')
+  removestudentbyteacher(@Param('id') id: string) {
     return this.studentsService.remove(+id);
   }
 
