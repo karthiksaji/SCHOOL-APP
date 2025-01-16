@@ -35,44 +35,5 @@ export class TeachersService {
     const teacher = this.teacherRepository.create(createTeacherDto);
     return this.teacherRepository.save(teacher);
   }
-
-   // Method to assign a teacher to multiple classes
-   async assignTeacherToClasses(
-    teacherId: number,
-    classIds: number[]
-  ) {
-    // Fetch the teacher
-    const teacher = await this.teacherRepository.findOne({
-      where: { id: teacherId },
-      relations: ['classes'], // Get the classes the teacher is already assigned to
-    });
-
-    if (!teacher) {
-      throw new NotFoundException(`Teacher with ID ${teacherId} not found`);
-    }
-
-    // Fetch the classes by the provided class IDs
-    const classes = await this.classRepository.find({
-      where: {
-        id: In(classIds),  // Use In() to query by multiple IDs
-      },
-    });
-
-    if (!classes || classes.length === 0) {
-      throw new NotFoundException('Classes not found');
-    }
-
-    // Assign the classes to the teacher
-    teacher.classes = [...teacher.classes, ...classes];
-    
-    // Save the updated teacher
-    await this.teacherRepository.save(teacher);
-
-    return {
-      message: 'Teacher successfully assigned to the classes',
-      teacher,
-    };
-  }
-
-  
+   
 }
