@@ -33,6 +33,8 @@ export class ClassesService {
     Object.assign(existingClass, classData);
     return this.classRepository.save(existingClass);
   }
+  
+///////
 
   async remove(id: number): Promise<void> {
     await this.classRepository.delete(id);
