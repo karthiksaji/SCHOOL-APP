@@ -1,5 +1,5 @@
 import { StudentsService } from "../students.service";
-import { IsNotEmpty, IsInt, Min, IsEmail ,IsString,MaxLength} from 'class-validator';
+import { IsNotEmpty, IsInt, Min, IsEmail ,IsString,MaxLength,IsNumber} from 'class-validator';
 
 export class CreateStudentDto {
     @IsNotEmpty()
@@ -14,6 +14,10 @@ export class CreateStudentDto {
     @IsEmail()
     @MaxLength(96)
     email:string;
+
+    @IsNotEmpty()
+    @IsNumber()
+    id: number; 
 
     @IsNotEmpty()
     classId: number; 

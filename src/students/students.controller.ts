@@ -8,6 +8,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { Student } from './student.entity';
 import { ApiOperation,ApiResponse,ApiBody,ApiParam ,ApiProperty,ApiConsumes} from '@nestjs/swagger';
+import { CreateStudentsGroupDto } from './dto/create-students-group.dto';
 
 
 @Controller('students')
@@ -50,6 +51,7 @@ export class StudentsController {
       updateExample: {
         summary: 'An example to insert a student request',
         value: {
+          id:1,
           name: 'Type a Name',
           age:21,
           email:'Type a email',
@@ -61,6 +63,37 @@ export class StudentsController {
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentsService.create(createStudentDto);
   }
+
+  @Post('group')
+  @ApiOperation({ summary: 'Add a group of students' })
+  @ApiResponse({ status: 201, description: 'Students added successfully' })
+ @ApiBody({
+  type: CreateStudentsGroupDto,
+  description: 'Group of students to be added',
+  examples: {
+    default: {
+      summary: 'Example input for a group of students',
+      value: {
+        students: [
+          { id: 1, name: 'Arun',classId:1,age:0, email: '@example.com' },
+          { id: 2, name: 'sooraj',classId:1,age:0, email: '@example.com' },
+          { id: 3, name: 'karthik',classId:1,age:0, email: '@example.com' },
+        ],
+      },
+    },
+  },
+})
+  async addStudentsGroup(@Body() createStudentsGroupDto: CreateStudentsGroupDto) {
+    const savedStudents = await this.studentsService.addStudentsGroup(
+      createStudentsGroupDto.students,
+    );
+
+    return {
+      message: 'Students added successfully',
+      studentIds: savedStudents,
+    };
+  }
+
 
   @Put(':id')
   @ApiOperation({ summary: 'Update student' })

@@ -49,6 +49,32 @@ export class StudentsService {
     return this.studentRepository.save(newStudent);
   }
 
+  //creating group of students
+
+  async addStudentsGroup(students: CreateStudentDto[]): Promise<number[]> {
+    const savedStudents: number[] = [];
+
+  for (const student of students) {
+    // Check if the email is already used
+    const existingStudent = await this.studentRepository.findOne({
+      where: { email: student.email },
+    });
+
+    if (existingStudent) {
+      throw new Error(`Email ${student.email} is already in use.`);
+    }
+
+    // Create and save the student
+    const newStudent = this.studentRepository.create(student);
+    await this.studentRepository.save(newStudent);
+
+    // Keep track of saved student IDs
+    savedStudents.push(newStudent.id);
+  }
+
+  return savedStudents;
+}
+
   async update(id: number, updateStudentDto: UpdateStudentDto): Promise<Student> {
     const { classId, ...studentData } = updateStudentDto;
 
@@ -123,4 +149,5 @@ export class StudentsService {
     student.profilePicture = profilePicturePath;
     return await this.studentRepository.save(student);
   }
+
 }
