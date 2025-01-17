@@ -7,7 +7,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { Student } from './student.entity';
-import { ApiOperation,ApiResponse,ApiBody,ApiParam } from '@nestjs/swagger';
+import { ApiOperation,ApiResponse,ApiBody,ApiParam ,ApiProperty,ApiConsumes} from '@nestjs/swagger';
 
 
 @Controller('students')
@@ -44,6 +44,19 @@ export class StudentsController {
   @ApiOperation({ summary: 'Create a new student' })
   @ApiResponse({ status: 201, description: 'The student has been created.' })
   @ApiBody({ type: Student })
+  @ApiBody({
+    type: CreateStudentDto,
+    examples: {
+      updateExample: {
+        summary: 'An example to insert a student request',
+        value: {
+          name: 'Type a Name',
+          age:21,
+          classId: 1
+        },
+      },
+    },
+  })
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentsService.create(createStudentDto);
   }
@@ -59,6 +72,19 @@ export class StudentsController {
   @Put('/teachers/:id')
   @ApiOperation({ summary: 'Teachers can update student' })
   @ApiResponse({ status: 201, description: 'The student has been updated by Teacher.' })
+  @ApiBody({
+    type: CreateStudentDto,
+    examples: {
+      updateExample: {
+        summary: 'An example teacher can update student request',
+        value: {
+          name: 'karthik',
+          age:21,
+          class:2
+        },
+      },
+    },
+  })
   updatestudentbyteacher(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
     return this.studentsService.update(+id, updateStudentDto);
   }
@@ -80,8 +106,23 @@ export class StudentsController {
   //pic
 
   @Post(':id/profile-picture')
+  @ApiParam({ name: 'id', description: 'The ID of the student', type: Number })
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Add profile picture to students' })
   @ApiResponse({ status: 201, description: 'Profile Picture Added Successfully' })
+  @ApiBody({
+    description: 'Upload a profile picture',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
