@@ -13,23 +13,23 @@ export class StudentsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Class)
     private readonly classRepository: Repository<Class>,
-  ) {}
+  ) { }
 
   async findAll(): Promise<Student[]> {
-    return this.studentRepository.find({ relations: ['class','class.teacher'] });
+    return this.studentRepository.find({ relations: ['class', 'class.teacher'] });
   }
 
   async findOne(id: number): Promise<Student> {
     const student = await this.studentRepository.findOne({
       where: { id },
-      relations: ['class'],
+      relations: ['class','class.teacher'],
     });
     if (!student) {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
     return student;
   }
-  
+
   async save(student: Student): Promise<Student> {
     return this.studentRepository.save(student);
   }
@@ -54,26 +54,26 @@ export class StudentsService {
   async addStudentsGroup(students: CreateStudentDto[]): Promise<number[]> {
     const savedStudents: number[] = [];
 
-  for (const student of students) {
-    // Check if the email is already used
-    const existingStudent = await this.studentRepository.findOne({
-      where: { email: student.email },
-    });
+    for (const student of students) {
+      // Check if the email is already used
+      const existingStudent = await this.studentRepository.findOne({
+        where: { email: student.email },
+      });
 
-    if (existingStudent) {
-      throw new Error(`Email ${student.email} is already in use.`);
+      if (existingStudent) {
+        throw new Error(`Email ${student.email} is already in use.`);
+      }
+
+      // Create and save the student
+      const newStudent = this.studentRepository.create(student);
+      await this.studentRepository.save(newStudent);
+
+      // Keep track of saved student IDs
+      savedStudents.push(newStudent.id);
     }
 
-    // Create and save the student
-    const newStudent = this.studentRepository.create(student);
-    await this.studentRepository.save(newStudent);
-
-    // Keep track of saved student IDs
-    savedStudents.push(newStudent.id);
+    return savedStudents;
   }
-
-  return savedStudents;
-}
 
   async update(id: number, updateStudentDto: UpdateStudentDto): Promise<Student> {
     const { classId, ...studentData } = updateStudentDto;
@@ -86,7 +86,7 @@ export class StudentsService {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
-    
+
 
     if (classId) {
       const classEntity = await this.classRepository.findOne({ where: { id: classId } });
@@ -110,7 +110,7 @@ export class StudentsService {
     if (!existingStudent) {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
-    
+
     if (classId) {
       const classEntity = await this.classRepository.findOne({ where: { id: classId } });
       if (!classEntity) {
@@ -131,7 +131,7 @@ export class StudentsService {
     }
   }
 
-  
+
   async removestudentbyteacher(id: number): Promise<void> {
     const result = await this.studentRepository.delete(id);
     if (result.affected === 0) {
@@ -139,7 +139,7 @@ export class StudentsService {
     }
   }
   //pf method
-   async addProfilePicture(id: number, profilePicturePath: string): Promise<Student> {
+  async addProfilePicture(id: number, profilePicturePath: string): Promise<Student> {
     const student = await this.studentRepository.findOne({ where: { id } });
 
     if (!student) {

@@ -1,5 +1,7 @@
-import { Controller,All, Get,  UseInterceptors,
-  UploadedFile, Post, Put, Delete, Body, Param,RequestTimeoutException } from '@nestjs/common';
+import {
+  Controller, All, Get, UseInterceptors,
+  UploadedFile, Post, Put, Delete, Body, Param, RequestTimeoutException
+} from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -7,28 +9,28 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { Student } from './student.entity';
-import { ApiOperation,ApiResponse,ApiBody,ApiParam ,ApiProperty,ApiConsumes} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody, ApiParam, ApiProperty, ApiConsumes } from '@nestjs/swagger';
 import { CreateStudentsGroupDto } from './dto/create-students-group.dto';
 
 
 @Controller('students')
 export class StudentsController {
   private readonly baseUrl = 'http://localhost:3000';
-  constructor(private readonly studentsService: StudentsService) {}
+  constructor(private readonly studentsService: StudentsService) { }
 
   @ApiOperation({ summary: 'Get all students' })
   @ApiResponse({ status: 200, description: 'List of students retrieved successfully.' })
   @Get()
   findAll() {
-    try{
-    return this.studentsService.findAll();
-    }catch(error){
+    try {
+      return this.studentsService.findAll();
+    } catch (error) {
       throw new RequestTimeoutException(
         'unable to process your request at the momemnt please try again later',
         {
-            description:'error connecting to database'
+          description: 'error connecting to database'
         },
-    )
+      )
     }
   }
 
@@ -51,10 +53,10 @@ export class StudentsController {
       updateExample: {
         summary: 'An example to insert a student request',
         value: {
-          id:1,
+          id: 1,
           name: 'Type a Name',
-          age:21,
-          email:'Type a email',
+          age: 21,
+          email: 'Type a email',
           classId: 1
         },
       },
@@ -64,25 +66,27 @@ export class StudentsController {
     return this.studentsService.create(createStudentDto);
   }
 
+  //add students group
+
   @Post('group')
   @ApiOperation({ summary: 'Add a group of students' })
   @ApiResponse({ status: 201, description: 'Students added successfully' })
- @ApiBody({
-  type: CreateStudentsGroupDto,
-  description: 'Group of students to be added',
-  examples: {
-    default: {
-      summary: 'Example input for a group of students',
-      value: {
-        students: [
-          { id: 1, name: 'Arun',classId:1,age:0, email: '@example.com' },
-          { id: 2, name: 'sooraj',classId:1,age:0, email: '@example.com' },
-          { id: 3, name: 'karthik',classId:1,age:0, email: '@example.com' },
-        ],
+  @ApiBody({
+    type: CreateStudentsGroupDto,
+    description: 'Group of students to be added',
+    examples: {
+      default: {
+        summary: 'Example input for a group of students',
+        value: {
+          students: [
+            { id: 1, name: 'Arun', classId: 1, age: 0, email: '@example.com' },
+            { id: 2, name: 'sooraj', classId: 1, age: 0, email: '@example.com' },
+            { id: 3, name: 'karthik', classId: 1, age: 0, email: '@example.com' },
+          ],
+        },
       },
     },
-  },
-})
+  })
   async addStudentsGroup(@Body() createStudentsGroupDto: CreateStudentsGroupDto) {
     const savedStudents = await this.studentsService.addStudentsGroup(
       createStudentsGroupDto.students,
@@ -102,7 +106,7 @@ export class StudentsController {
     return this.studentsService.update(+id, updateStudentDto);
   }
 
-  
+
   @Put('/teachers/:id')
   @ApiOperation({ summary: 'Teachers can update student' })
   @ApiResponse({ status: 201, description: 'The student has been updated by Teacher.' })
@@ -113,8 +117,8 @@ export class StudentsController {
         summary: 'An example teacher can update student request',
         value: {
           name: 'karthik',
-          age:21,
-          class:2
+          age: 21,
+          class: 2
         },
       },
     },
@@ -176,13 +180,13 @@ export class StudentsController {
       throw new Error('File not uploaded');
     }
 
-        const profilePicturePath = `uploads/${file.filename}`; // Save the relative file path
+    const profilePicturePath = `uploads/${file.filename}`; // Save the relative file path
 
-        const profilePictureUrl = `${this.baseUrl}/uploads/${file.filename}`;
+    const profilePictureUrl = `${this.baseUrl}/uploads/${file.filename}`;
 
-     
-      await this.studentsService.addProfilePicture(id, profilePicturePath); // Save the URL in the database 
- 
+
+    await this.studentsService.addProfilePicture(id, profilePicturePath); // Save the URL in the database 
+
     return { message: 'Profile picture uploaded successfully', profilePictureUrl };
   }
 }
