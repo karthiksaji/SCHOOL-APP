@@ -52,6 +52,7 @@ export class StudentsController {
         value: {
           name: 'Type a Name',
           age:21,
+          email:'Type a email',
           classId: 1
         },
       },

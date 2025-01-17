@@ -12,6 +12,15 @@ export class Student {
   @Column({ default: 0 })
    age: number;
 
+
+  @Column({
+    type:'varchar',
+    length:96,
+    nullable:false,
+    unique:true
+  })
+  email:string;
+
   @ManyToOne(() => Class, (classEntity) => classEntity.students,{ onDelete: 'CASCADE' })
   class: Class;
 
