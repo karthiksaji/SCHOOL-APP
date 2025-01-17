@@ -136,7 +136,7 @@ export class StudentsController {
   )
   async addProfilePicture(
     @UploadedFile() file: Express.Multer.File,
-    @Body('id') id: number,
+    @Param('id') id: number,
   ) {
     if (!file) {
       throw new Error('File not uploaded');
@@ -147,8 +147,8 @@ export class StudentsController {
         const profilePictureUrl = `${this.baseUrl}/uploads/${file.filename}`;
 
      
-      await this.studentsService.addProfilePicture(id, profilePictureUrl); // Save the URL in the database 
-    return this.studentsService.addProfilePicture(id, profilePicturePath);
+      await this.studentsService.addProfilePicture(id, profilePicturePath); // Save the URL in the database 
+ 
     return { message: 'Profile picture uploaded successfully', profilePictureUrl };
   }
 }

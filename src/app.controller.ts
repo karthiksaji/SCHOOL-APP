@@ -10,12 +10,5 @@ export class AppController {
     return this.appService.getHello();
   }
   
-  // @All('*')
-  // handleInvalidUrl() {
-  //   return {
-  //     statusCode: 404,
-  //     message: '🚫🚫🚫🚫🚫Nokiyum Kandum URL adikada 🚫🚫🚫🚫🚫🚫🚫',
-  //     error: 'Not Found',
-  //   };
-  // }
+
 }
