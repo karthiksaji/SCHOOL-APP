@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
 import { ClassesService } from './classes.service';
 import { Class } from './class.entity';
-import { ApiOperation,ApiResponse,ApiBody,ApiParam } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import { CreateClassDto } from './dto/create-class.dto';
 
 @Controller('classes')
 export class ClassesController {
-  constructor(private readonly classesService: ClassesService) {}
+  constructor(private readonly classesService: ClassesService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get the details of every classes ' })
@@ -25,9 +26,20 @@ export class ClassesController {
   }
 
   @Post()
+  @ApiBody({
+    type: CreateClassDto,
+    examples: {
+      updateExample: {
+        summary: 'To create a class',
+        value: {
+          id: 1,
+          name: 'Class C',
+        },
+      },
+    },
+  })
   @ApiOperation({ summary: 'Create a new Class' })
   @ApiResponse({ status: 201, description: 'The class has been created.' })
-  @ApiBody({ type: Class})
   create(@Body() classData: Partial<Class>) {
     return this.classesService.create(classData);
   }
@@ -43,7 +55,7 @@ export class ClassesController {
   @Delete(':id')
   @ApiOperation({ summary: 'To delete a class' })
   @ApiResponse({ status: 201, description: 'The class has been deleted' })
-    remove(@Param('id') id: string) {
+  remove(@Param('id') id: string) {
     return this.classesService.remove(+id);
   }
 }
