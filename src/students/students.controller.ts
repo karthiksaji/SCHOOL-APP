@@ -100,6 +100,19 @@ export class StudentsController {
 
 
   @Put(':id')
+  @ApiBody({
+    type: UpdateStudentDto,
+    examples: {
+      updateExample: {
+        summary: 'An example to insert a student request',
+        value: {
+          name: 'Type a Name',
+          age: 21,
+          email: 'Type a email',
+        },
+      },
+    },
+  })
   @ApiOperation({ summary: 'Update student' })
   @ApiResponse({ status: 201, description: 'The student has been updated.' })
   update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
