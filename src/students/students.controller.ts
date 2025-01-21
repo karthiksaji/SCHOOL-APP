@@ -1,6 +1,16 @@
 import {
-  Controller, All, Get, UseInterceptors,
-  UploadedFile, Post, Put, Delete, Body, Param, RequestTimeoutException
+  Controller,
+  All,
+  Get,
+  UseInterceptors,
+  UploadedFile,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  RequestTimeoutException,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -9,29 +19,49 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { Student } from './student.entity';
-import { ApiOperation, ApiResponse, ApiBody, ApiParam, ApiProperty, ApiConsumes } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+  ApiProperty,
+  ApiConsumes,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { CreateStudentsGroupDto } from './dto/create-students-group.dto';
-
+import { PaginationQueryDto } from 'src/common/pagination/pagination-query.dto';
 
 @Controller('students')
 export class StudentsController {
   private readonly baseUrl = 'http://localhost:3000';
-  constructor(private readonly studentsService: StudentsService) { }
+  constructor(private readonly studentsService: StudentsService) {}
 
-  @ApiOperation({ summary: 'Get all students' })
-  @ApiResponse({ status: 200, description: 'List of students retrieved successfully.' })
+  // @ApiOperation({ summary: 'Get all students' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'List of students retrieved successfully.',
+  // })
+  // @Get()
+  // findAll() {
+  //   try {
+  //     return this.studentsService.findAll();
+  //   } catch (error) {
+  //     throw new RequestTimeoutException(
+  //       'unable to process your request at the momemnt please try again later',
+  //       {
+  //         description: 'error connecting to database',
+  //       },
+  //     );
+  //   }
+  // }
+
   @Get()
-  findAll() {
-    try {
-      return this.studentsService.findAll();
-    } catch (error) {
-      throw new RequestTimeoutException(
-        'unable to process your request at the momemnt please try again later',
-        {
-          description: 'error connecting to database'
-        },
-      )
-    }
+  @ApiOperation({ summary: 'Get paginated list of students' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Paginated list of students' })
+  async findAll(@Query() paginationQuery: PaginationQueryDto) {
+    return this.studentsService.findAll(paginationQuery);
   }
 
   @Get(':id')
@@ -57,7 +87,7 @@ export class StudentsController {
           name: 'Type a Name',
           age: 21,
           email: 'Type a email',
-          classId: 1
+          classId: 1,
         },
       },
     },
@@ -80,14 +110,28 @@ export class StudentsController {
         value: {
           students: [
             { id: 1, name: 'Arun', classId: 1, age: 0, email: '@example.com' },
-            { id: 2, name: 'sooraj', classId: 1, age: 0, email: '@example.com' },
-            { id: 3, name: 'karthik', classId: 1, age: 0, email: '@example.com' },
+            {
+              id: 2,
+              name: 'sooraj',
+              classId: 1,
+              age: 0,
+              email: '@example.com',
+            },
+            {
+              id: 3,
+              name: 'karthik',
+              classId: 1,
+              age: 0,
+              email: '@example.com',
+            },
           ],
         },
       },
     },
   })
-  async addStudentsGroup(@Body() createStudentsGroupDto: CreateStudentsGroupDto) {
+  async addStudentsGroup(
+    @Body() createStudentsGroupDto: CreateStudentsGroupDto,
+  ) {
     const savedStudents = await this.studentsService.addStudentsGroup(
       createStudentsGroupDto.students,
     );
@@ -97,7 +141,6 @@ export class StudentsController {
       studentIds: savedStudents,
     };
   }
-
 
   @Put(':id')
   @ApiBody({
@@ -119,10 +162,12 @@ export class StudentsController {
     return this.studentsService.update(+id, updateStudentDto);
   }
 
-
   @Put('/teachers/:id')
   @ApiOperation({ summary: 'Teachers can update student' })
-  @ApiResponse({ status: 201, description: 'The student has been updated by Teacher.' })
+  @ApiResponse({
+    status: 201,
+    description: 'The student has been updated by Teacher.',
+  })
   @ApiBody({
     type: CreateStudentDto,
     examples: {
@@ -131,12 +176,15 @@ export class StudentsController {
         value: {
           name: 'karthik',
           age: 21,
-          class: 2
+          class: 2,
         },
       },
     },
   })
-  updatestudentbyteacher(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
+  updatestudentbyteacher(
+    @Param('id') id: string,
+    @Body() updateStudentDto: UpdateStudentDto,
+  ) {
     return this.studentsService.update(+id, updateStudentDto);
   }
 
@@ -149,7 +197,10 @@ export class StudentsController {
 
   @Delete('/teachers/:id')
   @ApiOperation({ summary: 'Teacher can delete student' })
-  @ApiResponse({ status: 201, description: 'The student has been deleted by Teacher.' })
+  @ApiResponse({
+    status: 201,
+    description: 'The student has been deleted by Teacher.',
+  })
   removestudentbyteacher(@Param('id') id: string) {
     return this.studentsService.remove(+id);
   }
@@ -160,7 +211,10 @@ export class StudentsController {
   @ApiParam({ name: 'id', description: 'The ID of the student', type: Number })
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Add profile picture to students' })
-  @ApiResponse({ status: 201, description: 'Profile Picture Added Successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Profile Picture Added Successfully',
+  })
   @ApiBody({
     description: 'Upload a profile picture',
     schema: {
@@ -173,7 +227,6 @@ export class StudentsController {
       },
     },
   })
-
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -197,13 +250,11 @@ export class StudentsController {
 
     const profilePictureUrl = `${this.baseUrl}/uploads/${file.filename}`;
 
+    await this.studentsService.addProfilePicture(id, profilePicturePath); // Save the URL in the database
 
-    await this.studentsService.addProfilePicture(id, profilePicturePath); // Save the URL in the database 
-
-    return { message: 'Profile picture uploaded successfully', profilePictureUrl };
+    return {
+      message: 'Profile picture uploaded successfully',
+      profilePictureUrl,
+    };
   }
 }
-
-
-
-

@@ -5,6 +5,7 @@ import { Student } from './student.entity';
 import { Class } from '../classes/class.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { PaginationQueryDto } from 'src/common/pagination/pagination-query.dto';
 
 @Injectable()
 export class StudentsService {
@@ -13,16 +14,33 @@ export class StudentsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Class)
     private readonly classRepository: Repository<Class>,
-  ) { }
+  ) {}
 
-  async findAll(): Promise<Student[]> {
-    return this.studentRepository.find({ relations: ['class', 'class.teacher'] });
+  // async findAll(): Promise<Student[]> {
+  //   return this.studentRepository.find({ relations: ['class', 'class.teacher'] });
+  // }
+
+  async findAll(paginationQuery: PaginationQueryDto): Promise<any> {
+    const { page = 1, limit = 10 } = paginationQuery;
+
+    const [data, total] = await this.studentRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number): Promise<Student> {
     const student = await this.studentRepository.findOne({
       where: { id },
-      relations: ['class','class.teacher'],
+      relations: ['class', 'class.teacher'],
     });
     if (!student) {
       throw new NotFoundException(`Student with ID ${id} not found`);
@@ -37,7 +55,9 @@ export class StudentsService {
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     const { classId, ...studentData } = createStudentDto;
 
-    const classEntity = await this.classRepository.findOne({ where: { id: classId } });
+    const classEntity = await this.classRepository.findOne({
+      where: { id: classId },
+    });
     if (!classEntity) {
       throw new NotFoundException(`Class with ID ${classId} not found`);
     }
@@ -75,32 +95,10 @@ export class StudentsService {
     return savedStudents;
   }
 
-  async update(id: number, updateStudentDto: UpdateStudentDto): Promise<Student> {
-    const { classId, ...studentData } = updateStudentDto;
-
-    const existingStudent = await this.studentRepository.findOne({
-      where: { id },
-      relations: ['class'],
-    });
-    if (!existingStudent) {
-      throw new NotFoundException(`Student with ID ${id} not found`);
-    }
-
-
-
-    if (classId) {
-      const classEntity = await this.classRepository.findOne({ where: { id: classId } });
-      if (!classEntity) {
-        throw new NotFoundException(`Class with ID ${classId} not found`);
-      }
-      existingStudent.class = classEntity;
-    }
-
-    Object.assign(existingStudent, studentData);
-    return this.studentRepository.save(existingStudent);
-  }
-
-  async updatestudentbyteacher(id: number, updateStudentDto: UpdateStudentDto): Promise<Student> {
+  async update(
+    id: number,
+    updateStudentDto: UpdateStudentDto,
+  ): Promise<Student> {
     const { classId, ...studentData } = updateStudentDto;
 
     const existingStudent = await this.studentRepository.findOne({
@@ -112,7 +110,9 @@ export class StudentsService {
     }
 
     if (classId) {
-      const classEntity = await this.classRepository.findOne({ where: { id: classId } });
+      const classEntity = await this.classRepository.findOne({
+        where: { id: classId },
+      });
       if (!classEntity) {
         throw new NotFoundException(`Class with ID ${classId} not found`);
       }
@@ -123,6 +123,33 @@ export class StudentsService {
     return this.studentRepository.save(existingStudent);
   }
 
+  async updatestudentbyteacher(
+    id: number,
+    updateStudentDto: UpdateStudentDto,
+  ): Promise<Student> {
+    const { classId, ...studentData } = updateStudentDto;
+
+    const existingStudent = await this.studentRepository.findOne({
+      where: { id },
+      relations: ['class'],
+    });
+    if (!existingStudent) {
+      throw new NotFoundException(`Student with ID ${id} not found`);
+    }
+
+    if (classId) {
+      const classEntity = await this.classRepository.findOne({
+        where: { id: classId },
+      });
+      if (!classEntity) {
+        throw new NotFoundException(`Class with ID ${classId} not found`);
+      }
+      existingStudent.class = classEntity;
+    }
+
+    Object.assign(existingStudent, studentData);
+    return this.studentRepository.save(existingStudent);
+  }
 
   async remove(id: number): Promise<void> {
     const result = await this.studentRepository.delete(id);
@@ -131,7 +158,6 @@ export class StudentsService {
     }
   }
 
-
   async removestudentbyteacher(id: number): Promise<void> {
     const result = await this.studentRepository.delete(id);
     if (result.affected === 0) {
@@ -139,7 +165,10 @@ export class StudentsService {
     }
   }
   //pf method
-  async addProfilePicture(id: number, profilePicturePath: string): Promise<Student> {
+  async addProfilePicture(
+    id: number,
+    profilePicturePath: string,
+  ): Promise<Student> {
     const student = await this.studentRepository.findOne({ where: { id } });
 
     if (!student) {
@@ -149,5 +178,4 @@ export class StudentsService {
     student.profilePicture = profilePicturePath;
     return await this.studentRepository.save(student);
   }
-
 }
