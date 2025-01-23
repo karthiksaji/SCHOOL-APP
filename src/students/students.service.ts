@@ -6,6 +6,8 @@ import { Class } from '../classes/class.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { PaginationQueryDto } from 'src/common/pagination/pagination-query.dto';
+import { log } from 'console';
+import { MailService } from 'src/mail/providers/mail.service';
 
 @Injectable()
 export class StudentsService {
@@ -14,6 +16,7 @@ export class StudentsService {
     private readonly studentRepository: Repository<Student>,
     @InjectRepository(Class)
     private readonly classRepository: Repository<Class>,
+    private readonly mailService: MailService,
   ) {}
 
   // async findAll(): Promise<Student[]> {
@@ -52,9 +55,27 @@ export class StudentsService {
     return this.studentRepository.save(student);
   }
 
+  // async create(createStudentDto: CreateStudentDto): Promise<Student> {
+  //   const { classId, ...studentData } = createStudentDto;
+
+  //   const classEntity = await this.classRepository.findOne({
+  //     where: { id: classId },
+  //   });
+  //   if (!classEntity) {
+  //     throw new NotFoundException(`Class with ID ${classId} not found`);
+  //   }
+
+  //   const newStudent = this.studentRepository.create({
+  //     ...studentData,
+  //     class: classEntity,
+  //   });
+  //   return this.studentRepository.save(newStudent);
+  // }
+
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     const { classId, ...studentData } = createStudentDto;
 
+    // Find the class by ID
     const classEntity = await this.classRepository.findOne({
       where: { id: classId },
     });
@@ -62,11 +83,30 @@ export class StudentsService {
       throw new NotFoundException(`Class with ID ${classId} not found`);
     }
 
+    // Create a new student entity
     const newStudent = this.studentRepository.create({
       ...studentData,
       class: classEntity,
     });
-    return this.studentRepository.save(newStudent);
+
+    // Save the new student in the database
+    const savedStudent = await this.studentRepository.save(newStudent);
+
+    // Send a welcome email to the new student
+    try {
+      await this.mailService.sendWelcomeEmail(
+        savedStudent.email,
+        savedStudent.name,
+      );
+      console.log(`sucess send email to ${savedStudent.email}:`);
+    } catch (error) {
+      console.error(
+        `Failed to send email to ${savedStudent.email}:`,
+        error.message,
+      );
+    }
+
+    return savedStudent;
   }
 
   //creating group of students
