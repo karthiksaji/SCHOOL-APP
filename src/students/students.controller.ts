@@ -30,6 +30,7 @@ import {
 } from '@nestjs/swagger';
 import { CreateStudentsGroupDto } from './dto/create-students-group.dto';
 import { PaginationQueryDto } from 'src/common/pagination/pagination-query.dto';
+import * as jwt from 'jsonwebtoken';
 
 @Controller('students')
 export class StudentsController {
@@ -54,6 +55,27 @@ export class StudentsController {
   //     );
   //   }
   // }
+
+  //for email verfication
+
+  @Get('verify')
+  async verifyStudent(@Query('token') token: string): Promise<string> {
+    try {
+      // Verify the token
+      const decoded: any = jwt.verify(token, 'SECRET_KEY'); // Replace with your actual secret key
+
+      // Extract the student ID from the token
+      const studentId = decoded.studentId;
+
+      // Update the 'verified' column in the database
+      await this.studentsService.verifyStudent(studentId);
+
+      return 'Your email has been successfully verified!';
+    } catch (error) {
+      console.error('Verification failed:', error.message);
+      return 'Invalid or expired verification link.';
+    }
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get paginated list of students' })

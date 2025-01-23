@@ -95,6 +95,7 @@ export class StudentsService {
     // Send a welcome email to the new student
     try {
       await this.mailService.sendWelcomeEmail(
+        savedStudent.id,
         savedStudent.email,
         savedStudent.name,
       );
@@ -107,6 +108,20 @@ export class StudentsService {
     }
 
     return savedStudent;
+  }
+
+  //to verify student in the link
+  async verifyStudent(studentId: number): Promise<void> {
+    const student = await this.studentRepository.findOne({
+      where: { id: studentId },
+    });
+
+    if (!student) {
+      throw new Error('Student not found');
+    }
+
+    student.verified = true; // Update the 'verified' column to true
+    await this.studentRepository.save(student); // Save the changes to the database
   }
 
   //creating group of students
