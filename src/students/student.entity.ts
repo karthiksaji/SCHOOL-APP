@@ -1,5 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Class } from 'src/classes/class.entity';
+import { join } from 'path';
+import { name } from 'ejs';
 
 @Entity()
 export class Student {
@@ -26,6 +34,7 @@ export class Student {
   @ManyToOne(() => Class, (classEntity) => classEntity.students, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'class' })
   class: Class;
 
   @Column({ nullable: true })
