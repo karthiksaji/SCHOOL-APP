@@ -5,6 +5,7 @@ import { Class } from 'src/classes/class.entity';
 export class Teacher {
   @PrimaryGeneratedColumn()
   id: number;
+// name
 
   @Column({ length: 100 })
   name: string;
